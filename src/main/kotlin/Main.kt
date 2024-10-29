@@ -1,3 +1,59 @@
+sealed class Attachment(val type: String)
+
+data class PhotoAttachment(
+    val photo: Photo
+) : Attachment(type = "photo")
+
+data class Photo(
+    val id: Int,
+    val ownerId: Int,
+    val photo130: String,
+    val photo604: String
+)
+
+data class VideoAttachment(
+    val video: Video
+) : Attachment(type = "video")
+
+data class Video(
+    val id: Int,
+    val ownerId: Int,
+    val title: String,
+    val duration: Int
+)
+
+data class AudioAttachment(
+    val audio: Audio
+) : Attachment(type = "audio")
+
+data class Audio(
+    val id: Int,
+    val ownerId: Int,
+    val title: String,
+    val duration: Int
+)
+
+data class DocAttachment(
+    val doc: Document
+) : Attachment(type = "doc")
+
+data class Document(
+    val id: Int,
+    val ownerId: Int,
+    val title: String,
+    val size: Int
+)
+
+data class LinkAttachment(
+    val link: Link
+) : Attachment(type = "link")
+
+data class Link(
+    val url: String,
+    val title: String,
+    val description: String
+)
+
 data class Post(
     val id: Int,
     val ownerId: Int,
@@ -9,7 +65,8 @@ data class Post(
     val replyPostId: Int? = null,
     val friendsOnly: Boolean = false,
     val comments: Comment = Comment(),
-    val likes: Like = Like()
+    val likes: Like = Like(),
+    val attachments: List<Attachment> = emptyList()
 )
 
 data class Comment(
@@ -40,7 +97,7 @@ class WallService {
         if (existingPost != null) {
             val updatedPost = post.copy(id = existingPost.id)
             val index = posts.indexOf(existingPost)
-            posts.set(index, updatedPost)
+            posts[index] = updatedPost
             return true
         }
         return false
@@ -54,6 +111,9 @@ class WallService {
 fun main() {
     val wallService = WallService()
 
+    val photo = Photo(1, 1, "https://vk.com/photo_130", "https://vk.com/photo_604")
+    val video = Video(1, 1, "A Funny Video", 30)
+
     val post1 = Post(
         id = 0,
         ownerId = 123,
@@ -61,22 +121,13 @@ fun main() {
         createdBy = true,
         date = 1643723400,
         text = "Hello, world!",
-        friendsOnly = true
-    )
-
-    val post2 = Post(
-        id = 0,
-        ownerId = 456,
-        fromId = 456,
-        createdBy = false,
-        date = 1643723410,
-        text = "Kotlin is awesome!",
-        replyOwnerId = 123,
-        replyPostId = 1
+        attachments = listOf(
+            PhotoAttachment(photo),
+            VideoAttachment(video)
+        )
     )
 
     val addedPost1 = wallService.add(post1)
-    val addedPost2 = wallService.add(post2)
 
     println("Added post 1:")
     println("  ID: ${addedPost1.id}")
@@ -85,31 +136,7 @@ fun main() {
     println("  Created by: ${addedPost1.createdBy}")
     println("  Date: ${addedPost1.date}")
     println("  Text: ${addedPost1.text}")
-    println("  Friends only: ${addedPost1.friendsOnly}")
-    println()
-
-    println("Added post 2:")
-    println("  ID: ${addedPost2.id}")
-    println("  Owner ID: ${addedPost2.ownerId}")
-    println("  From ID: ${addedPost2.fromId}")
-    println("  Created by: ${addedPost2.createdBy}")
-    println("  Date: ${addedPost2.date}")
-    println("  Text: ${addedPost2.text}")
-    println("  Friends only: ${addedPost2.friendsOnly}")
-    println()
-
-    val updatedPost = addedPost1.copy(text = "Hello, universe!")
-    val isUpdated = wallService.update(updatedPost)
-
-    println("Updated post:")
-    println("  ID: ${updatedPost.id}")
-    println("  Owner ID: ${updatedPost.ownerId}")
-    println("  From ID: ${updatedPost.fromId}")
-    println("  Created by: ${updatedPost.createdBy}")
-    println("  Date: ${updatedPost.date}")
-    println("  Text: ${updatedPost.text}")
-    println("  Friends only: ${updatedPost.friendsOnly}")
-    println("  Is updated: $isUpdated")
+    println("  Attachments: ${addedPost1.attachments}")
     println()
 
     val posts = wallService.getPosts()
@@ -121,7 +148,8 @@ fun main() {
         println("  Created by: ${post.createdBy}")
         println("  Date: ${post.date}")
         println("  Text: ${post.text}")
-        println("  Friends only: ${post.friendsOnly}")
+        println("  Attachments: ${post.attachments}")
         println()
     }
 }
+
